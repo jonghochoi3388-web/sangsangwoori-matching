@@ -1,0 +1,27 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__sequential-thinking__sequentialthinking",
+      "mcp__supabase__list_organizations",
+      "mcp__supabase__get_cost",
+      "mcp__supabase__confirm_cost",
+      "mcp__supabase__create_project",
+      "mcp__supabase__apply_migration",
+      "mcp__supabase__get_project_url",
+      "mcp__supabase__get_publishable_keys",
+      "Bash(npx create-next-app@latest *)",
+      "Bash(npm install *)",
+      "Bash(npx shadcn@latest *)",
+      "Bash(npx tsc *)",
+      "Bash(npm run *)",
+      "mcp__playwright__browser_navigate",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3000/)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3000/register)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3000/recommendations)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3000/admin)",
+      "Bash(grep \"^d.*\\\\.git$\")",
+      "Bash(git init *)",
+      "Bash(git add *)"
+    ]
+  }
+}
