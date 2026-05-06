@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -48,6 +49,7 @@ export default function RegisterPage() {
   const [fieldErrors, setFieldErrors] = useState<FieldError>({});
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [serverError, setServerError] = useState("");
+  const [registeredId, setRegisteredId] = useState<string | null>(null);
 
   function handleInput(e: React.ChangeEvent<HTMLInputElement>) {
     const { name, value } = e.target;
@@ -72,21 +74,30 @@ export default function RegisterPage() {
     setStatus("loading");
     setServerError("");
 
-    const { error } = await supabase.from("seniors").insert({
-      name: form.name.trim(),
-      region: form.region,
-      desired_job: form.desired_job,
-      career_years: form.career_years === "" ? 0 : Number(form.career_years),
-    });
+    const { data, error } = await supabase
+      .from("seniors")
+      .insert({
+        name: form.name.trim(),
+        region: form.region,
+        desired_job: form.desired_job,
+        career_years: form.career_years === "" ? 0 : Number(form.career_years),
+      })
+      .select("id")
+      .single();
 
     if (error) {
       setStatus("error");
       setServerError(error.message);
-    } else {
-      setStatus("success");
-      setForm(INITIAL_FORM);
-      setFieldErrors({});
+      return;
     }
+
+    // 매칭 점수 자동 재계산 (RPC)
+    await supabase.rpc("recalc_matches_for_senior", { p_senior_id: data.id });
+
+    setStatus("success");
+    setRegisteredId(data.id);
+    setForm(INITIAL_FORM);
+    setFieldErrors({});
   }
 
   return (
@@ -94,9 +105,14 @@ export default function RegisterPage() {
       <h1 className="text-4xl font-bold text-blue-800 mb-2">프로필 등록</h1>
       <p className="text-xl text-gray-500 mb-8">내 정보를 입력하면 알맞은 일자리를 찾아 드립니다.</p>
 
-      {status === "success" && (
-        <div className="mb-8 rounded-xl border-2 border-green-500 bg-green-50 px-6 py-5 text-xl font-bold text-green-800">
-          ✅ 등록이 완료되었습니다! 추천 일자리를 확인해 보세요.
+      {status === "success" && registeredId && (
+        <div className="mb-8 rounded-xl border-2 border-green-500 bg-green-50 px-6 py-5 space-y-3">
+          <p className="text-xl font-bold text-green-800">✅ 등록이 완료되었습니다!</p>
+          <Link href={`/recommendations?senior_id=${registeredId}`}>
+            <Button className="w-full text-xl py-6 bg-green-600 hover:bg-green-700">
+              내 추천 일자리 보기 →
+            </Button>
+          </Link>
         </div>
       )}
 
@@ -112,7 +128,6 @@ export default function RegisterPage() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} noValidate className="space-y-8">
-
             {/* 이름 */}
             <div className="space-y-2">
               <Label htmlFor="name" className="text-xl font-semibold">
@@ -141,16 +156,12 @@ export default function RegisterPage() {
                 onValueChange={(v) => handleSelect("region", v)}
                 disabled={status === "loading"}
               >
-                <SelectTrigger
-                  className={`text-xl h-14 border-2 ${fieldErrors.region ? "border-red-400" : ""}`}
-                >
+                <SelectTrigger className={`text-xl h-14 border-2 ${fieldErrors.region ? "border-red-400" : ""}`}>
                   <SelectValue placeholder="지역을 선택하세요" />
                 </SelectTrigger>
                 <SelectContent>
                   {REGIONS.map((r) => (
-                    <SelectItem key={r} value={r} className="text-xl py-3">
-                      {r}
-                    </SelectItem>
+                    <SelectItem key={r} value={r} className="text-xl py-3">{r}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -167,16 +178,12 @@ export default function RegisterPage() {
                 onValueChange={(v) => handleSelect("desired_job", v)}
                 disabled={status === "loading"}
               >
-                <SelectTrigger
-                  className={`text-xl h-14 border-2 ${fieldErrors.desired_job ? "border-red-400" : ""}`}
-                >
+                <SelectTrigger className={`text-xl h-14 border-2 ${fieldErrors.desired_job ? "border-red-400" : ""}`}>
                   <SelectValue placeholder="직종을 선택하세요" />
                 </SelectTrigger>
                 <SelectContent>
                   {JOB_TYPES.map((j) => (
-                    <SelectItem key={j} value={j} className="text-xl py-3">
-                      {j}
-                    </SelectItem>
+                    <SelectItem key={j} value={j} className="text-xl py-3">{j}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
