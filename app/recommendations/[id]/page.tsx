@@ -2,6 +2,8 @@
 
 import { use, useEffect, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 import { supabase } from "@/lib/supabase";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -40,18 +42,17 @@ type MatchWithJob = {
 
 function ScoreBadge({ score }: { score: number }) {
   if (score === 6)
-    return <Badge className="text-base px-3 py-1 bg-amber-500 hover:bg-amber-500 text-white whitespace-nowrap">⭐ {score}점 · 매우 적합</Badge>;
+    return <Badge className="text-lg px-4 py-1 bg-amber-500 hover:bg-amber-500 text-white whitespace-nowrap">⭐ {score}점 · 매우 적합</Badge>;
   if (score >= 4)
-    return <Badge className="text-base px-3 py-1 bg-green-600 hover:bg-green-600 text-white whitespace-nowrap">{score}점 · 적합</Badge>;
-  return <Badge className="text-base px-3 py-1 bg-gray-400 hover:bg-gray-400 text-white whitespace-nowrap">{score}점 · 보통</Badge>;
+    return <Badge className="text-lg px-4 py-1 bg-green-600 hover:bg-green-600 text-white whitespace-nowrap">{score}점 · 적합</Badge>;
+  return <Badge className="text-lg px-4 py-1 bg-gray-400 hover:bg-gray-400 text-white whitespace-nowrap">{score}점 · 보통</Badge>;
 }
 
-export default function SeniorDetailPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  const { id } = use(params);
+function DetailContent({ id }: { id: string }) {
+  const searchParams = useSearchParams();
+  const from = searchParams.get("from");
+  const returnHref = from === "admin" ? "/admin" : "/recommendations";
+  const returnLabel = "리턴 버튼";
 
   const [senior, setSenior] = useState<Senior | null>(null);
   const [matches, setMatches] = useState<MatchWithJob[]>([]);
@@ -63,7 +64,11 @@ export default function SeniorDetailPage({
   useEffect(() => {
     async function load() {
       const [{ data: seniorData }, { data: matchData }] = await Promise.all([
-        supabase.from("seniors").select("id, name, region, desired_job, career_years").eq("id", id).single(),
+        supabase
+          .from("seniors")
+          .select("id, name, region, desired_job, career_years")
+          .eq("id", id)
+          .single(),
         supabase
           .from("matches")
           .select("id, score, status, jobs(id, title, region, job_type, required_career)")
@@ -91,28 +96,26 @@ export default function SeniorDetailPage({
   }
 
   if (loading) {
-    return (
-      <div className="max-w-4xl mx-auto px-6 py-12">
-        <p className="text-xl text-gray-400 text-center py-12">불러오는 중…</p>
-      </div>
-    );
+    return <p className="text-xl text-gray-400 text-center py-12">불러오는 중…</p>;
   }
 
   if (!senior) {
     return (
-      <div className="max-w-4xl mx-auto px-6 py-12">
+      <>
         <p className="text-xl text-gray-500 text-center py-12">구직자 정보를 찾을 수 없습니다.</p>
-        <div className="text-center mt-4">
-          <Link href="/recommendations">
-            <Button variant="outline" className="text-lg px-6 py-3 border-2">← 전체 구직자 목록으로</Button>
+        <div className="text-center mt-8">
+          <Link href={returnHref}>
+            <Button className="text-xl px-10 py-6 bg-gray-700 hover:bg-gray-800 text-white">
+              {returnLabel}
+            </Button>
           </Link>
         </div>
-      </div>
+      </>
     );
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-6 py-12">
+    <>
       {/* 확인 팝업 */}
       <AlertDialog open={!!confirm} onOpenChange={(open) => { if (!open) setConfirm(null); }}>
         <AlertDialogContent className="max-w-md">
@@ -120,7 +123,9 @@ export default function SeniorDetailPage({
             <AlertDialogTitle className="text-2xl font-bold">매칭을 실행할까요?</AlertDialogTitle>
             <AlertDialogDescription className="text-lg text-gray-700 mt-2 space-y-1">
               <span className="block font-semibold text-gray-900">📋 {confirm?.jobTitle}</span>
-              <span className="block">후보자분의 의견이 반영되었나요?<br />확인 후 매칭을 진행해 주세요.</span>
+              <span className="block">
+                후보자분의 의견이 반영되었나요?<br />확인 후 매칭을 진행해 주세요.
+              </span>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="gap-3 mt-2">
@@ -137,31 +142,33 @@ export default function SeniorDetailPage({
 
       {/* 헤더 */}
       <div className="mb-8">
-        <h1 className="text-4xl font-bold text-green-800 mb-1">{senior.name} 님의 매칭 일자리</h1>
-        <p className="text-xl text-gray-500 mb-4">
+        <h1 className="text-4xl font-bold text-green-800 mb-1">{senior.name} 님의 추천 일자리</h1>
+        <p className="text-xl text-gray-500">
           {senior.region} · {senior.desired_job} · 경력 {senior.career_years > 0 ? `${senior.career_years}년` : "없음"}
         </p>
-        <div className="flex flex-wrap gap-3 text-lg text-gray-500 items-center">
-          <span className="inline-flex items-center gap-2">
-            <Badge className="bg-amber-500 text-white text-base px-3 py-1">⭐ 6점</Badge>매우 적합
-          </span>
-          <span className="inline-flex items-center gap-2">
-            <Badge className="bg-green-600 text-white text-base px-3 py-1">4~5점</Badge>적합
-          </span>
-          <span className="inline-flex items-center gap-2">
-            <Badge className="bg-gray-400 text-white text-base px-3 py-1">2~3점</Badge>보통
-          </span>
-        </div>
+      </div>
+
+      {/* 점수 범례 */}
+      <div className="mb-8 flex flex-wrap gap-3 text-lg text-gray-500 items-center">
+        <span className="inline-flex items-center gap-2">
+          <Badge className="bg-amber-500 text-white text-base px-3 py-1">⭐ 6점</Badge>매우 적합
+        </span>
+        <span className="inline-flex items-center gap-2">
+          <Badge className="bg-green-600 text-white text-base px-3 py-1">4~5점</Badge>적합
+        </span>
+        <span className="inline-flex items-center gap-2">
+          <Badge className="bg-gray-400 text-white text-base px-3 py-1">2~3점</Badge>보통
+        </span>
       </div>
 
       {/* 매칭 일자리 목록 */}
       {matches.length === 0 ? (
-        <div className="rounded-xl border-2 border-gray-300 bg-gray-50 px-8 py-6 text-xl font-semibold text-gray-600 mb-8">
+        <div className="rounded-xl border-2 border-gray-300 bg-gray-50 px-8 py-6 text-xl font-semibold text-gray-600 mb-10">
           현재 매칭되는 일자리가 없습니다.<br />
           <span className="text-lg font-normal text-gray-400">담당자가 직접 연락드리니 잠시 기다려 주세요.</span>
         </div>
       ) : (
-        <div className="space-y-5 mb-10">
+        <div className="space-y-6 mb-10">
           {matches.map((m) => {
             const job = m.jobs;
             if (!job) return null;
@@ -213,14 +220,30 @@ export default function SeniorDetailPage({
         </div>
       )}
 
-      {/* 하단 돌아가기 버튼 */}
+      {/* 하단 리턴 버튼 */}
       <div className="border-t border-gray-200 pt-8 text-center">
-        <Link href="/recommendations">
-          <Button variant="outline" className="text-xl px-10 py-6 border-2 border-gray-300 hover:border-green-500 hover:text-green-700">
-            ← 전체 구직자 목록으로 돌아가기
+        <Link href={returnHref}>
+          <Button className="text-xl px-12 py-6 bg-gray-700 hover:bg-gray-800 text-white">
+            {returnLabel}
           </Button>
         </Link>
       </div>
+    </>
+  );
+}
+
+export default function SeniorDetailPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = use(params);
+
+  return (
+    <div className="max-w-4xl mx-auto px-6 py-12">
+      <Suspense fallback={<p className="text-xl text-gray-400 text-center py-12">불러오는 중…</p>}>
+        <DetailContent id={id} />
+      </Suspense>
     </div>
   );
 }
