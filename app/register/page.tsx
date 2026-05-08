@@ -102,12 +102,12 @@ export default function RegisterPage() {
 
   return (
     <div className="max-w-2xl mx-auto px-6 py-12">
-      <h1 className="text-4xl font-bold text-blue-800 mb-2">프로필 등록</h1>
-      <p className="text-xl text-gray-500 mb-8">내 정보를 입력하면 알맞은 일자리를 찾아 드립니다.</p>
+      <h1 className="text-4xl font-bold text-blue-800 mb-2">시니어 일자리 신청하기</h1>
+      <p className="text-xl text-gray-500 mb-8">아래 정보를 입력하시면 담당자가 알맞은 일자리를 찾아 드립니다.</p>
 
       {status === "success" && registeredId && (
         <div className="mb-8 rounded-xl border-2 border-green-500 bg-green-50 px-6 py-5 space-y-3">
-          <p className="text-xl font-bold text-green-800">✅ 등록이 완료되었습니다!</p>
+          <p className="text-xl font-bold text-green-800">✅ 등록이 완료되었습니다. 담당자가 곧 연락드립니다.</p>
           <Link href={`/recommendations?senior_id=${registeredId}`}>
             <Button className="w-full text-xl py-6 bg-green-600 hover:bg-green-700">
               내 추천 일자리 보기 →
@@ -133,6 +133,7 @@ export default function RegisterPage() {
               <Label htmlFor="name" className="text-xl font-semibold">
                 이름 <span className="text-red-500">*</span>
               </Label>
+              <p className="text-lg text-gray-500">성함을 한글로 적어 주세요.</p>
               <FieldErrorMsg msg={fieldErrors.name} />
               <Input
                 id="name"
@@ -150,6 +151,7 @@ export default function RegisterPage() {
               <Label className="text-xl font-semibold">
                 지역 <span className="text-red-500">*</span>
               </Label>
+              <p className="text-lg text-gray-500">어디에서 일하고 싶으세요?</p>
               <FieldErrorMsg msg={fieldErrors.region} />
               <Select
                 value={form.region}
@@ -172,6 +174,7 @@ export default function RegisterPage() {
               <Label className="text-xl font-semibold">
                 희망 직종 <span className="text-red-500">*</span>
               </Label>
+              <p className="text-lg text-gray-500">어떤 일을 하시겠어요?</p>
               <FieldErrorMsg msg={fieldErrors.desired_job} />
               <Select
                 value={form.desired_job}
@@ -195,6 +198,7 @@ export default function RegisterPage() {
                 경력 (년)
                 <span className="ml-2 text-lg font-normal text-gray-400">선택</span>
               </Label>
+              <p className="text-lg text-gray-500">일하신 경험이 얼마나 되세요? 없으시면 비워 두셔도 됩니다.</p>
               <FieldErrorMsg msg={fieldErrors.career_years} />
               <Input
                 id="career_years"

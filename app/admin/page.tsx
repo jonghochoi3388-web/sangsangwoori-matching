@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { AlertTriangle, Clock, CheckCircle2 } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -212,7 +213,11 @@ export default function AdminPage() {
         <h2 className="text-2xl font-bold text-gray-700 mb-4">매칭 현황</h2>
         <div className="grid grid-cols-3 gap-6">
           <Card className="border-2 border-red-200 bg-red-50 shadow-md">
-            <CardHeader><CardTitle className="text-2xl text-red-800">미매칭</CardTitle></CardHeader>
+            <CardHeader>
+              <CardTitle className="text-2xl text-red-800 flex items-center gap-2">
+                <AlertTriangle className="w-6 h-6" /> 미매칭
+              </CardTitle>
+            </CardHeader>
             <CardContent>
               <p className="text-5xl font-bold text-red-600">
                 {loadingDashboard ? "…" : unmatchedCount}
@@ -221,7 +226,11 @@ export default function AdminPage() {
             </CardContent>
           </Card>
           <Card className="border-2 border-yellow-200 bg-yellow-50 shadow-md">
-            <CardHeader><CardTitle className="text-2xl text-yellow-800">매칭 대기</CardTitle></CardHeader>
+            <CardHeader>
+              <CardTitle className="text-2xl text-yellow-800 flex items-center gap-2">
+                <Clock className="w-6 h-6" /> 매칭 대기
+              </CardTitle>
+            </CardHeader>
             <CardContent>
               <p className="text-5xl font-bold text-yellow-600">
                 {loadingDashboard ? "…" : pendingCount}
@@ -230,7 +239,11 @@ export default function AdminPage() {
             </CardContent>
           </Card>
           <Card className="border-2 border-green-200 bg-green-50 shadow-md">
-            <CardHeader><CardTitle className="text-2xl text-green-800">배정 완료</CardTitle></CardHeader>
+            <CardHeader>
+              <CardTitle className="text-2xl text-green-800 flex items-center gap-2">
+                <CheckCircle2 className="w-6 h-6" /> 배정 완료
+              </CardTitle>
+            </CardHeader>
             <CardContent>
               <p className="text-5xl font-bold text-green-600">
                 {loadingDashboard ? "…" : assignedCount}
