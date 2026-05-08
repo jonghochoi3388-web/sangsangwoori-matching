@@ -295,7 +295,7 @@ export default function AdminPage() {
                           <StatusBadge status={st} />
                         </TableCell>
                         <TableCell className="text-center">
-                          <Link href={`/recommendations?senior_id=${s.id}`}>
+                          <Link href={`/recommendations/${s.id}`}>
                             <Button variant="outline" className="text-lg px-4 py-2 border-2">
                               상세 보기
                             </Button>
